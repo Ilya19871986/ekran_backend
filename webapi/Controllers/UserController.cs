@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -45,22 +46,42 @@ namespace webapi.Controllers
             return Ok($"Ваш логин: {User.Identity.Name}");
         }
 
-        [Authorize /*(Roles = "admin")*/]
+        [Authorize]
+        [HttpGet]
         [Route("getrole")]
-        public IActionResult GetRole(string username, string password)
+        public async Task<IActionResult> GetRole(string username, string password)
         {
-            User person =  db.Users.FirstOrDefault(x => x.user_name == username && x.password == password);
+            User user =  await db.Users.FirstOrDefaultAsync(x => x.user_name == username && x.password == password);
+            // пишем дату авторизации
+            if (user != null)
+            {
+                user.AuthTime = DateTime.Now.ToString("g");
+                db.Update(user);
+                await db.SaveChangesAsync();
+            }
+            
             var response = new
             {
-                person.Role
+                user.Id,
+                user.Role
             };
             return Json(response);
         }
-        [Authorize]
-        [Route("gettest")]
-        public IActionResult GetTest()
+        // смена пароля
+        [HttpGet]
+        [Route("newpass")]
+        public async Task<IActionResult> NewPassword(int? id, string newpassword)
         {
-            return Json("test");
+            if (id != null) 
+            {
+                User user = await db.Users.FirstOrDefaultAsync(x => x.Id == id);
+                user.password = newpassword;
+                db.Update(user);
+                await db.SaveChangesAsync();
+                return Ok();
+            }
+            return BadRequest(id);
         }
+       
     }
 }

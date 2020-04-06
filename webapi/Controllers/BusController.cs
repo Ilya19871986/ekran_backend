@@ -69,6 +69,7 @@ namespace webapi.Controllers
             return Json(bus);
         }
         // изменяем автобус
+        [Authorize]
         [Route("UpdateBus")]
         [HttpPost]
         public async Task<IActionResult> Edit(BusTemp bus2)
