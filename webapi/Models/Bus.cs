@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace webapi.Models
 {
-    [Table("schedule_bus2")]
+    [Table("schedule_bus")]
     public class Bus
     {
         public int Id { get; set; }

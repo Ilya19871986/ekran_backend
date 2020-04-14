@@ -14,5 +14,7 @@ namespace webapi.Models
         public string last_connect { get; set; }
         public string player_version { get; set; }
         public int user_id { get; set; }
+        public int run_text { get; set; }
+        public int time_vip { get; set; }
     }
 }
