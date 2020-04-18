@@ -9,6 +9,7 @@ namespace webapi.Models
     public class PanelsDBContext : DbContext
     {
         public DbSet<Panel> Panels { get; set; }
+        public DbSet<Content> Content { get; set; }
         public PanelsDBContext(DbContextOptions<PanelsDBContext> options) : base(options)
         {
 

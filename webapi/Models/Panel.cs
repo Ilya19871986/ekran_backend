@@ -16,5 +16,6 @@ namespace webapi.Models
         public int user_id { get; set; }
         public int run_text { get; set; }
         public int time_vip { get; set; }
+        public string address { get; set; }
     }
 }

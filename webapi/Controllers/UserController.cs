@@ -68,6 +68,7 @@ namespace webapi.Controllers
             return Json(response);
         }
         // смена пароля
+        [Authorize]
         [HttpGet]
         [Route("newpass")]
         public async Task<IActionResult> NewPassword(int? id, string newpassword)
