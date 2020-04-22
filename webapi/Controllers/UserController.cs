@@ -60,12 +60,7 @@ namespace webapi.Controllers
                 await db.SaveChangesAsync();
             }
             
-            var response = new
-            {
-                user.Id,
-                user.Role
-            };
-            return Json(response);
+            return Json(user);
         }
         // смена пароля
         [Authorize]
