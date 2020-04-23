@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,6 +34,7 @@ namespace webapi.Controllers
             return BadRequest("not found");
         }
         // загрузка файла
+        [Authorize]
         [HttpPost]
         [Route("AddFile")]
         public async Task<IActionResult> AddFile(
@@ -72,6 +74,38 @@ namespace webapi.Controllers
             {
                 return BadRequest(e.Message);
             }
+        }
+        // удалить файл
+        [Authorize]
+        [HttpPost]
+        [Route("DeleteFile")]
+        public async Task<IActionResult> DeleteFile([FromForm]int? id)
+        {
+            if (id != null)
+            {
+                var content =  await db.Content.FirstOrDefaultAsync(p => p.Id == id);
+                content.deleted = 1;
+                db.Update(content);
+                await db.SaveChangesAsync();
+                return Ok();
+            };
+            return BadRequest();
+        }
+        // обновить время удаления файла
+        [Authorize]
+        [HttpPost]
+        [Route("UpdateFile")]
+        public async Task<IActionResult> UpdateFile([FromForm] int? id, [FromForm] DateTime newDate)
+        {
+            if ((id != null) && (newDate != null))
+            {
+                var content = await db.Content.FirstOrDefaultAsync(p => p.Id == id);
+                content.end_date = newDate;
+                db.Update(content);
+                await db.SaveChangesAsync();
+                return Ok();
+            }
+            return BadRequest();
         }
     }
 }
