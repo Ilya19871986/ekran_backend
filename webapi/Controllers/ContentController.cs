@@ -36,6 +36,9 @@ namespace webapi.Controllers
         // загрузка файла
         [Authorize]
         [HttpPost]
+        [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
+        [DisableRequestSizeLimit]
+        [Consumes("multipart/form-data")]
         [Route("AddFile")]
         public async Task<IActionResult> AddFile(
             [FromForm]IFormFile uploadedFile, [FromForm]string path, [FromForm]int panel_id, [FromForm]int user_id, [FromForm]int type_content

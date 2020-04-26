@@ -13,6 +13,7 @@ using webapi.Models;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace webapi
 {
@@ -31,6 +32,12 @@ namespace webapi
             string connectionPlayers = Configuration.GetConnectionString("DefaultConnection");
             // коннект базы bus
             string connectionBus = Configuration.GetConnectionString("Bus");
+            // снимаем ограничение на размер body
+            services.Configure<IISServerOptions>(options =>
+            {
+                options.MaxRequestBodySize = int.MaxValue;
+            });
+
             // подключаемся к базе players
             services.AddDbContext<PlayersDBContext>(options => 
                     options.UseMySql(connectionPlayers));
@@ -42,6 +49,12 @@ namespace webapi
                     options.UseMySql(connectionPlayers));
 
             services.AddCors();
+
+            services.Configure<FormOptions>(options =>
+            {
+                // Set the limit to 256 MB
+                options.MultipartBodyLengthLimit = 268435456;
+            });
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
@@ -70,6 +83,8 @@ namespace webapi
 
         public void Configure(IApplicationBuilder app)
         {
+           
+
             app.UseDeveloperExceptionPage();
 
             app.UseDefaultFiles();
