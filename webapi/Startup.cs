@@ -53,7 +53,7 @@ namespace webapi
             services.Configure<FormOptions>(options =>
             {
                 // Set the limit to 256 MB
-                options.MultipartBodyLengthLimit = 268435456;
+                options.MultipartBodyLengthLimit = 2684354560;
             });
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

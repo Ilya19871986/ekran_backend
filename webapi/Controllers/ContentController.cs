@@ -36,9 +36,6 @@ namespace webapi.Controllers
         // загрузка файла
         [Authorize]
         [HttpPost]
-        [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
-        [DisableRequestSizeLimit]
-        [Consumes("multipart/form-data")]
         [Route("AddFile")]
         public async Task<IActionResult> AddFile(
             [FromForm]IFormFile uploadedFile, [FromForm]string path, [FromForm]int panel_id, [FromForm]int user_id, [FromForm]int type_content
@@ -48,7 +45,7 @@ namespace webapi.Controllers
             {
                 if (uploadedFile != null)
                 {
-                    string FileName = uploadedFile.FileName;
+                    string FileName = uploadedFile.FileName.Trim().Replace(' ', '_'); 
                    
                     using (var fileStream = new FileStream(path + FileName, FileMode.Create))
                     {
@@ -56,7 +53,7 @@ namespace webapi.Controllers
                     }
 
                     Content content = new Content();
-                    content.file_name = uploadedFile.FileName;
+                    content.file_name = FileName;
                     content.file_size = (int)uploadedFile.Length;
                     content.sync = 0;
                     content.deleted = 0;

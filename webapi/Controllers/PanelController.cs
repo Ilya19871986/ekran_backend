@@ -30,5 +30,24 @@ namespace webapi.Controllers
             }
             return BadRequest("UserId is null");
         }
+        // изменить настройки панели
+        [Authorize]
+        [Route("ChangePanel")]
+        [HttpPost]
+        public async Task<IActionResult> ChangePanel([FromForm] int? id, [FromForm]int run_text, [FromForm]int time_vip, [FromForm]string address, [FromForm]string newName)
+        {
+            if (id != null)
+            {
+                var panel = await db.Panels.FirstOrDefaultAsync(p => p.id == id);
+                panel.panel_name = newName;
+                panel.run_text = run_text;
+                panel.time_vip = time_vip;
+                panel.address = address;
+                db.Update(panel);
+                await db.SaveChangesAsync();
+                return Ok();
+            }
+            return BadRequest();
+        }
     }
 }
