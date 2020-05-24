@@ -17,5 +17,6 @@ namespace webapi.Models
         public int run_text { get; set; }
         public int time_vip { get; set; }
         public string address { get; set; }
+        public int only_vip { get; set; }
     }
 }
