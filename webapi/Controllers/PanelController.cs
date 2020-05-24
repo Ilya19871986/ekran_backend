@@ -84,5 +84,23 @@ namespace webapi.Controllers
                 return BadRequest("User not found");
             }
         }
+        // удалить файл из БД
+        [Authorize]
+        [HttpGet]
+        [Route("deleteFile")]
+        public async Task<IActionResult> DeleteFileDb(int id)
+        {
+            Content content = await db.Content.FirstOrDefaultAsync(p => p.Id == id);
+            if (content != null)
+            {
+                db.Remove(content);
+                await db.SaveChangesAsync();
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("File not found");
+            }
+        }
     }
 }

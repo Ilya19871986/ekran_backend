@@ -107,5 +107,18 @@ namespace webapi.Controllers
             }
             return BadRequest();
         }
+        // список файлов для загрузки
+        [Authorize]
+        [HttpGet]
+        [Route("toUpload")]
+        public IActionResult ToUpload(int? PanelId)
+        {
+            var content = db.Content.Where(p => (p.panel_id == PanelId) && (p.sync == 0));
+            if (content != null)
+            {
+                return Json(content);
+            };
+            return Json("result: not_found");
+        }
     }
 }
