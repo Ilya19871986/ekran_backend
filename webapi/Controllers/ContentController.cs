@@ -120,17 +120,15 @@ namespace webapi.Controllers
             };
             return Json("result: not_found");
         }
-        [Authorize]
+        //[Authorize]
         [HttpGet]
-        [Route("DelFileDB")]
-        public async Task<IActionResult> Delete(int? id)
+        [Route("GetDeletedFile")]
+        public IActionResult GetDeletedFile(int? id)
         {
-            var content = await db.Content.FirstOrDefaultAsync(p => p.Id == id);
+            var content = db.Content.Where(p => (p.panel_id == id) && (p.deleted == 1));
             if (content != null)
             {
-                db.Remove(content);
-                await db.SaveChangesAsync();
-                return Ok();
+                return Json(content);
             }
             return BadRequest();
         }

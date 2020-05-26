@@ -88,7 +88,7 @@ namespace webapi.Controllers
         [Authorize]
         [HttpGet]
         [Route("deleteFile")]
-        public async Task<IActionResult> DeleteFileDb(int id)
+        public async Task<IActionResult> DeleteFileDb(int? id)
         {
             Content content = await db.Content.FirstOrDefaultAsync(p => p.Id == id);
             if (content != null)
