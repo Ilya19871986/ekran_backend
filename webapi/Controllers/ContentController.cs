@@ -120,5 +120,19 @@ namespace webapi.Controllers
             };
             return Json("result: not_found");
         }
+        [Authorize]
+        [HttpGet]
+        [Route("DelFileDB")]
+        public async Task<IActionResult> Delete(int? id)
+        {
+            var content = await db.Content.FirstOrDefaultAsync(p => p.Id == id);
+            if (content != null)
+            {
+                db.Remove(content);
+                await db.SaveChangesAsync();
+                return Ok();
+            }
+            return BadRequest();
+        }
     }
 }
