@@ -102,5 +102,35 @@ namespace webapi.Controllers
                 return BadRequest("File not found");
             }
         }
+        [Authorize]
+        [HttpGet]
+        [Route("endUploadingFile")]
+        public async Task<IActionResult> FileUploadEnd(int? id)
+        {
+            Content content = await db.Content.FirstOrDefaultAsync(p => p.Id == id);
+            if (content != null)
+            {
+                content.sync = 1;
+                db.Update(content);
+                await db.SaveChangesAsync();
+                return Ok();
+            }
+            return BadRequest();
+        }
+        [Authorize]
+        [HttpGet]
+        [Route("connect")]
+        public async Task<IActionResult> updateConnectTime(int? id)
+        {
+            Panel panel = await db.Panels.FirstOrDefaultAsync(p => p.id == id);
+            if (panel != null)
+            {
+                panel.last_connect =  DateTime.Now.ToString("s");
+                db.Update(panel);
+                await db.SaveChangesAsync();
+                return Ok();
+            }
+            return BadRequest();
+        }
     }
 }

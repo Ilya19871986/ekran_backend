@@ -120,7 +120,7 @@ namespace webapi.Controllers
             };
             return Json("result: not_found");
         }
-        //[Authorize]
+        [Authorize]
         [HttpGet]
         [Route("GetDeletedFile")]
         public IActionResult GetDeletedFile(int? id)
