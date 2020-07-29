@@ -63,7 +63,7 @@ namespace webapi.Controllers
                     content.type_content = type_content;
 
                     db.Content.Add(content);
-                    db.SaveChanges();
+                    await db.SaveChangesAsync();
 
                     return Ok();
                 }

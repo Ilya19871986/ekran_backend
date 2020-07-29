@@ -58,6 +58,9 @@ namespace webapi.Controllers
         [HttpGet]
         public async Task<IActionResult> CreatePanel(string panelName, string username)
         {
+            Panel checkPanelName = await db.Panels.FirstOrDefaultAsync(p => p.panel_name == panelName);
+            if (checkPanelName != null) return BadRequest();
+
             User user = await db2.Users.FirstOrDefaultAsync(p => p.user_name == username);
             if (user != null)
             {
@@ -76,6 +79,7 @@ namespace webapi.Controllers
                 dirInfo.Create();
 
                 dirInfo.CreateSubdirectory("Видео");
+                dirInfo.CreateSubdirectory("update");
 
                 return Json(panel);
             }
@@ -131,6 +135,42 @@ namespace webapi.Controllers
                 return Ok();
             }
             return BadRequest();
+        }
+        [Authorize]
+        [HttpGet]
+        [Route("checkNewVersion")]
+        public async Task<IActionResult> checkNewVersion(int? PanelId)
+        {
+            Panel panel = await db.Panels.FirstOrDefaultAsync(p => p.id == PanelId);
+            if (panel != null)
+            {
+                return Json(panel);
+            }
+            return BadRequest();
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("deletePanel")]
+        // удалить панель
+        public async Task<IActionResult> deletePanel(int? PanelId)
+        {
+            Panel panel = await db.Panels.FirstOrDefaultAsync(p => p.id == PanelId);
+            
+            User user = await db2.Users.FirstOrDefaultAsync(p => p.Id == panel.user_id);
+
+            DirectoryInfo dirInfo = new DirectoryInfo(user.working_folder + @"\" + panel.panel_name);
+
+           
+            dirInfo.Delete(true);
+
+            if (panel != null)
+            {
+                db.Remove(panel);
+                await db.SaveChangesAsync();
+                return Ok();
+            }
+            return BadRequest("not found");
         }
     }
 }
