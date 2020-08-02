@@ -83,8 +83,6 @@ namespace webapi
 
         public void Configure(IApplicationBuilder app)
         {
-           
-
             app.UseDeveloperExceptionPage();
 
             app.UseDefaultFiles();

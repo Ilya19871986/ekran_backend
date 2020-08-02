@@ -15,7 +15,12 @@ namespace webapi.Models
         public string password { get; set; }
         public string Role { get; set; }
         public string working_folder { get; set; }
+        public string name { get; set; }
+        public string surname { get; set; }
         public string desctiption { get; set; }
         public string AuthTime { get; set; }
+        public bool locked { get; set; }
+        public bool deleted { get; set; }
+        public int adminId { get; set; }
     }
 }
