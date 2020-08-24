@@ -49,7 +49,7 @@ namespace webapi.Controllers
 
         private ClaimsIdentity GetIdentity(string username, string password)
         {
-            User person = db.Users.FirstOrDefault(x => x.user_name == username && x.password == password);
+            User person = db.Users.FirstOrDefault(x => x.user_name == username && x.password == password && x.locked == false);
             if (person != null)
             {
                 var claims = new List<Claim>

@@ -16,9 +16,12 @@ namespace webapi.Controllers
     public class ContentController : Controller
     {
         private PanelsDBContext db;
-        public ContentController(PanelsDBContext context)
+        private PlayersDBContext dbUser;
+
+        public ContentController(PanelsDBContext context, PlayersDBContext contextUser)
         {
             db = context;
+            dbUser = contextUser;
         }
 
         [Authorize]
@@ -33,6 +36,20 @@ namespace webapi.Controllers
             }
             return BadRequest("not found");
         }
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetContentType")]
+        public IActionResult GetContentType(int? PanelId, int? type)
+        {
+            if (PanelId != null)
+            {
+                var content = db.Content.Where(p => p.panel_id == PanelId && p.type_content == type);
+                return Json(content);
+            }
+            return BadRequest("not found");
+        }
+
         // загрузка файла
         [Authorize]
         [HttpPost]
@@ -46,26 +63,33 @@ namespace webapi.Controllers
                 if (uploadedFile != null)
                 {
                     string FileName = uploadedFile.FileName.Trim().Replace(' ', '_'); 
-                   
-                    using (var fileStream = new FileStream(path + FileName, FileMode.Create))
+
+                    if (FileName.Contains("mp4") || (FileName.Contains("jpeg")) || (FileName.Contains("jpg")) || (FileName.Contains("png")))
                     {
-                        await uploadedFile.CopyToAsync(fileStream);
+                            using (var fileStream = new FileStream(path + FileName, FileMode.Create))
+                            {
+                                await uploadedFile.CopyToAsync(fileStream);
+                            }
+
+                            Content content = new Content();
+                            content.file_name = FileName;
+                            content.file_size = (int)uploadedFile.Length;
+                            content.sync = 0;
+                            content.deleted = 0;
+                            content.end_date = DateTime.Parse("2999-01-01");
+                            content.user_id = user_id;
+                            content.panel_id = panel_id;
+                            content.type_content = type_content;
+
+                            db.Content.Add(content);
+                            await db.SaveChangesAsync();
+
+                            return Ok();
                     }
-
-                    Content content = new Content();
-                    content.file_name = FileName;
-                    content.file_size = (int)uploadedFile.Length;
-                    content.sync = 0;
-                    content.deleted = 0;
-                    content.end_date = DateTime.Parse("2999-01-01");
-                    content.user_id = user_id;
-                    content.panel_id = panel_id;
-                    content.type_content = type_content;
-
-                    db.Content.Add(content);
-                    await db.SaveChangesAsync();
-
-                    return Ok();
+                    else
+                    {
+                        return BadRequest("null");
+                    }
                 }
                 else
                     return BadRequest("null");
@@ -84,7 +108,9 @@ namespace webapi.Controllers
             if (id != null)
             {
                 var content =  await db.Content.FirstOrDefaultAsync(p => p.Id == id);
+
                 content.deleted = 1;
+                content.sync = 2;
                 db.Update(content);
                 await db.SaveChangesAsync();
                 return Ok();

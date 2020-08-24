@@ -42,7 +42,6 @@ namespace webapi.Controllers
             if (id != null)
             {
                 var panel = await db.Panels.FirstOrDefaultAsync(p => p.id == id);
-                panel.panel_name = newName;
                 panel.run_text = run_text;
                 panel.time_vip = time_vip;
                 panel.address = address;
@@ -65,9 +64,10 @@ namespace webapi.Controllers
             if (user != null)
             {
                 Panel panel = new Panel();
-                panel.panel_name = panelName;
+                panel.panel_name = panelName.Replace(" ", "_");
                 panel.user_id = user.Id;
                 panel.player_version = "3.0.0";
+                panel.time_vip = 5;
                 db.Add(panel);
                 
                 await db.SaveChangesAsync();
@@ -88,6 +88,24 @@ namespace webapi.Controllers
                 return BadRequest("User not found");
             }
         }
+
+        private string ContentName(int type)
+        {
+            var typeName = "";
+            switch (type)
+            {
+                case 1: typeName = "Акции"; break;
+                case 2: typeName = "Афиша"; break;
+                case 3: typeName = "Объявления"; break;
+                case 4: typeName = "Видео"; break;
+                case 5: typeName = "Строка"; break;
+                case 6: typeName = "Vip"; break;
+                default:
+                    typeName = ""; break;
+            }
+            return typeName;
+        }
+
         // удалить файл из БД
         [Authorize]
         [HttpGet]
@@ -117,6 +135,13 @@ namespace webapi.Controllers
                 content.sync = 1;
                 db.Update(content);
                 await db.SaveChangesAsync();
+
+                Panel panel = await db.Panels.FirstOrDefaultAsync(p => p.id == content.panel_id);
+                User user = await db2.Users.FirstOrDefaultAsync(p => p.Id == panel.user_id);
+                var path = user.working_folder + @"\" + panel.panel_name + @"\" + ContentName(content.type_content) + @"\" + content.file_name;
+
+                System.IO.File.Delete(path);
+
                 return Ok();
             }
             return BadRequest();
@@ -168,9 +193,9 @@ namespace webapi.Controllers
             {
                 db.Remove(panel);
                 await db.SaveChangesAsync();
-                return Ok();
+                return Ok("Панель удалена");
             }
-            return BadRequest("not found");
+            return BadRequest("Панель не найдена");
         }
     }
 }

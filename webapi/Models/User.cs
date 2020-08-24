@@ -13,11 +13,12 @@ namespace webapi.Models
         public int Id { get; set; }
         public string user_name { get; set; }
         public string password { get; set; }
+        public int CountPanel { get; set; }
         public string Role { get; set; }
         public string working_folder { get; set; }
         public string name { get; set; }
         public string surname { get; set; }
-        public string desctiption { get; set; }
+        public string description { get; set; }
         public string AuthTime { get; set; }
         public bool locked { get; set; }
         public bool deleted { get; set; }
