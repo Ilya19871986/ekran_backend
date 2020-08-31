@@ -5,11 +5,13 @@ using Microsoft.EntityFrameworkCore;
 using Miracle.FileZilla.Api;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using webapi.Models;
 
@@ -38,7 +40,7 @@ namespace webapi.Controllers
             return BadRequest("Пользователь не найден");
         }
         // список пользователей
-        [Authorize(Roles = "1")]
+        //[Authorize(Roles = "1")]
         [Route("GetUserList")]
         public async Task<IActionResult> GetUserList()
         {
@@ -107,9 +109,10 @@ namespace webapi.Controllers
         [Authorize]
         [HttpPost]
         [Route("create_user")]
-        public async Task<IActionResult> CreateUser([FromForm] string userName, [FromForm] string password, 
-                [FromForm] string surname, [FromForm] string name, [FromForm] string description, [FromForm] int adminId, 
-                [FromForm] string role = "2")
+        public async Task<IActionResult> CreateUser([FromForm] string userName, [FromForm] string password,
+                [FromForm] string surname, [FromForm] string name, [FromForm] string description, [FromForm] int adminId,
+                [FromForm] string organization, [FromForm] string phone, [FromForm] string email,
+                [FromForm] string town, [FromForm] string role = "2")
         {
             userName
                 .Replace(" ", "")
@@ -162,6 +165,11 @@ namespace webapi.Controllers
             addUser.deleted = false;
             addUser.locked = false;
             addUser.adminId = adminId;
+            addUser.organization = organization;
+            addUser.email = email;
+            addUser.town = town;
+            addUser.phone = phone;
+            addUser.creation_date = DateTime.Now;
 
             db.Add(addUser);
             await db.SaveChangesAsync();
@@ -193,6 +201,10 @@ namespace webapi.Controllers
             u.locked = user.locked;
             u.deleted = user.deleted;
             u.description = user.description;
+            u.organization = user.organization;
+            u.email = user.email;
+            u.phone = user.phone;
+            u.town = user.town;
 
             db.Update(u);
             await db.SaveChangesAsync();

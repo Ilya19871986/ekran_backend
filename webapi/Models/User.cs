@@ -22,6 +22,11 @@ namespace webapi.Models
         public string AuthTime { get; set; }
         public bool locked { get; set; }
         public bool deleted { get; set; }
+        public string organization { get; set; }
+        public string email { get; set; }
+        public string phone { get; set; }
+        public string town { get; set; }
+        public DateTime creation_date { get; set; }
         public int adminId { get; set; }
     }
 }
