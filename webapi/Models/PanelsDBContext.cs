@@ -10,6 +10,7 @@ namespace webapi.Models
     {
         public DbSet<Panel> Panels { get; set; }
         public DbSet<Content> Content { get; set; }
+        public DbSet<GroupPanel> GroupPanels { get; set; }
         public PanelsDBContext(DbContextOptions<PanelsDBContext> options) : base(options)
         {
 

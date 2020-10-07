@@ -18,5 +18,6 @@ namespace webapi.Models
         public int time_vip { get; set; }
         public string address { get; set; }
         public int only_vip { get; set; }
+        public int group_id { get; set; }
     }
 }

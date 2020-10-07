@@ -197,5 +197,37 @@ namespace webapi.Controllers
             }
             return BadRequest("Панель не найдена");
         }
+
+        [Authorize]
+        [HttpGet]
+        [Route("createGroup")]
+        public async Task<IActionResult> insertGroupPanel(string GroupName, int user_id)
+        {
+            if (db.GroupPanels.Count(p => p.group_name == GroupName) != 0)
+            {
+                return BadRequest("Группа с таким названием уже существует");
+            }
+
+            GroupPanel groupPanel = new GroupPanel();
+
+            groupPanel.user_id = user_id;
+            groupPanel.group_name = GroupName;
+
+            await db.AddAsync(groupPanel);
+            await db.SaveChangesAsync();
+
+            return Ok("Группа успешно добавлена");
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("getGroupPanels")]
+        public IActionResult getGroupPanels(int user_id)
+        {
+            var groups = db.GroupPanels.Where(p => p.user_id == user_id);
+
+            return Json(groups);
+        }
+
     }
 }
