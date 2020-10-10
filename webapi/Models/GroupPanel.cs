@@ -12,5 +12,7 @@ namespace webapi.Models
         public int Id { get; set; }
         public string group_name { get; set; }
         public int user_id { get; set; }
+        public string comment { get; set; }
+        public int count_panel { get; set; }
     }
 }
