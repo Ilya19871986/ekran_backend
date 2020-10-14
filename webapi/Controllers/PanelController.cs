@@ -208,10 +208,16 @@ namespace webapi.Controllers
                 return BadRequest("Группа с таким названием уже существует");
             }
 
+            User user = db2.Users.FirstOrDefault(p => p.Id == user_id);
+
+            DirectoryInfo dirInfo = new DirectoryInfo(user.working_folder + @"\" + "Group_" + GroupName);
+
+            dirInfo.Create();
+
             GroupPanel groupPanel = new GroupPanel();
 
             groupPanel.user_id = user_id;
-            groupPanel.group_name = GroupName;
+            groupPanel.group_name = GroupName.Trim().Replace(" ", "_");
             groupPanel.comment = comment;
 
             await db.AddAsync(groupPanel);
@@ -239,6 +245,11 @@ namespace webapi.Controllers
 
             if (group != null)
             {
+                User user = db2.Users.FirstOrDefault(p => p.Id == group.user_id);
+
+                DirectoryInfo dirInfo = new DirectoryInfo(user.working_folder + @"\Group_"  + group.group_name);
+                dirInfo.Delete(true);
+
                 db.GroupPanels.Remove(group);
                 await db.SaveChangesAsync();
             }
@@ -262,6 +273,11 @@ namespace webapi.Controllers
             }
             else
             {
+                User user = db2.Users.FirstOrDefault(p => p.Id == group.user_id);
+
+                DirectoryInfo dirInfo = new DirectoryInfo(user.working_folder + @"\Group_" + group.group_name);
+                dirInfo.MoveTo(user.working_folder + @"\Group_" + name);
+
                 group.group_name = name;
                 group.comment = comment;
                 db.Update(group);

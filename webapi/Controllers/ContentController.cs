@@ -158,5 +158,81 @@ namespace webapi.Controllers
             }
             return BadRequest();
         }
+        // загрузка файла в группу
+        [Authorize]
+        [HttpPost]
+        [Route("AddFileGroup")]
+        public async Task<IActionResult> AddFileGroup(
+            [FromForm] IFormFile uploadedFile, [FromForm] string path, [FromForm] int group_id, [FromForm] int user_id, 
+            [FromForm] int type_content)
+        {
+            try
+            {
+                if (uploadedFile != null)
+                {
+                    string FileName = uploadedFile.FileName.Trim().Replace(' ', '_');
+
+                    GroupPanel group = await db.GroupPanels.FirstOrDefaultAsync(p => p.Id == group_id);
+                    var panels = db.Panels.Where(p => p.group_id == group_id);
+
+                    if (FileName.Contains("mp4") || (FileName.Contains("jpeg")) || (FileName.Contains("jpg")) || (FileName.Contains("png")))
+                    {
+                        using (var fileStream = new FileStream(path + @"\Group_" + group.group_name + @"\" + FileName, FileMode.Create))
+                        {
+                            await uploadedFile.CopyToAsync(fileStream);
+                        }
+
+                        foreach (Panel panel in panels)
+                        {
+                            Content content = new Content();
+                            content.file_name = FileName;
+                            content.file_size = (int)uploadedFile.Length;
+                            content.sync = 0;
+                            content.deleted = 0;
+                            content.end_date = DateTime.Parse("2999-01-01");
+                            content.user_id = user_id;
+                            content.panel_id = panel.id;
+                            content.type_content = type_content;
+                            content.group_id = group_id;
+
+                            db.Content.Add(content);
+                        }
+                        
+                        await db.SaveChangesAsync();
+
+                        return Ok("Файл успешно загружен");
+                    }
+                    else
+                    {
+                        return BadRequest("Недопустимый формат");
+                    }
+                }
+                else
+                    return BadRequest("Ошибка прикрепления файла");
+            }
+            catch (Exception e)
+            {
+                return BadRequest("Было вызвано исключение: " + e.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetContentInGroup")]
+        public IActionResult GetContentInGroup(int? GroupId)
+        {
+            if (GroupId != null)
+            {
+                var result = db.Content
+                    .Where(p => p.group_id == GroupId)
+                    .Select(m => 
+                        new { m.file_name, m.file_size, m.sync, m.deleted, m.end_date, m.user_id, m.type_content })
+                    .Distinct()
+                    .ToList();
+
+                return Json(result);
+            }
+            return BadRequest("GroupId is null");
+        }
     }
 }

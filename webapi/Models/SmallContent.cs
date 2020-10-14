@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace webapi.Models
 {
-    [Table("content")]
-    public class Content
+    public class SmallContent
     {
         public int Id { get; set; }
         public string file_name { get; set; }
@@ -18,6 +16,5 @@ namespace webapi.Models
         public int user_id { get; set; }
         public int panel_id { get; set; }
         public int type_content { get; set; }
-        public int group_id { get; set; }
     }
 }
