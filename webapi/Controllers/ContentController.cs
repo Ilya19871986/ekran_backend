@@ -177,7 +177,7 @@ namespace webapi.Controllers
 
                     if (FileName.Contains("mp4") || (FileName.Contains("jpeg")) || (FileName.Contains("jpg")) || (FileName.Contains("png")))
                     {
-                        using (var fileStream = new FileStream(path + @"\Group_" + group.group_name + @"\" + FileName, FileMode.Create))
+                        using (var fileStream = new FileStream(path + @"\Group_" + group.Id + @"\" + FileName, FileMode.Create))
                         {
                             await uploadedFile.CopyToAsync(fileStream);
                         }
@@ -215,7 +215,7 @@ namespace webapi.Controllers
                 return BadRequest("Было вызвано исключение: " + e.Message);
             }
         }
-
+        // получить контент загруженный в группу
         [Authorize]
         [HttpGet]
         [Route("GetContentInGroup")]
@@ -226,13 +226,51 @@ namespace webapi.Controllers
                 var result = db.Content
                     .Where(p => p.group_id == GroupId)
                     .Select(m => 
-                        new { m.file_name, m.file_size, m.sync, m.deleted, m.end_date, m.user_id, m.type_content })
+                        new { m.file_name, m.file_size, m.deleted, m.end_date, m.user_id, m.type_content })
                     .Distinct()
                     .ToList();
 
                 return Json(result);
             }
             return BadRequest("GroupId is null");
+        }
+        // удалить файл из группы
+        [Authorize]
+        [HttpGet]
+        [Route("DeleteFileGroup")]
+        public async Task<IActionResult> DeleteFileGroup(int GroupId, string FileName)
+        {
+            var content = db.Content.Where(p => p.group_id == GroupId && p.file_name == FileName);
+
+            foreach (Content content1 in content)
+            {
+                content1.deleted = 1;
+                content1.sync = 2;
+                db.Content.Update(content1);
+            }
+
+            await db.SaveChangesAsync();
+
+            return Json(content);
+        }
+
+        // удалить файл из группы
+        [Authorize]
+        [HttpGet]
+        [Route("ChangeTimeDelete")]
+        public async Task<IActionResult> ChangeTimeDelete(int GroupId, string FileName, DateTime newDate)
+        {
+            var content = db.Content.Where(p => p.group_id == GroupId && p.file_name == FileName);
+
+            foreach (Content content1 in content)
+            {
+                content1.end_date = newDate;
+                db.Content.Update(content1);
+            }
+
+            await db.SaveChangesAsync();
+
+            return Json(content);
         }
     }
 }

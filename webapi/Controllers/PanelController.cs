@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Miracle.FileZilla.Api;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -60,7 +61,7 @@ namespace webapi.Controllers
             Panel checkPanelName = await db.Panels.FirstOrDefaultAsync(p => p.panel_name == panelName);
             if (checkPanelName != null) return BadRequest();
 
-            User user = await db2.Users.FirstOrDefaultAsync(p => p.user_name == username);
+            Models.User user = await db2.Users.FirstOrDefaultAsync(p => p.user_name == username);
             if (user != null)
             {
                 Panel panel = new Panel();
@@ -137,10 +138,10 @@ namespace webapi.Controllers
                 await db.SaveChangesAsync();
 
                 Panel panel = await db.Panels.FirstOrDefaultAsync(p => p.id == content.panel_id);
-                User user = await db2.Users.FirstOrDefaultAsync(p => p.Id == panel.user_id);
+                Models.User user = await db2.Users.FirstOrDefaultAsync(p => p.Id == panel.user_id);
                 var path = user.working_folder + @"\" + panel.panel_name + @"\" + ContentName(content.type_content) + @"\" + content.file_name;
 
-                System.IO.File.Delete(path);
+                if (content.group_id == 0)  System.IO.File.Delete(path);
 
                 return Ok();
             }
@@ -182,19 +183,26 @@ namespace webapi.Controllers
         {
             Panel panel = await db.Panels.FirstOrDefaultAsync(p => p.id == PanelId);
 
-            User user = await db2.Users.FirstOrDefaultAsync(p => p.Id == panel.user_id);
+            Models.User user = await db2.Users.FirstOrDefaultAsync(p => p.Id == panel.user_id);
 
             DirectoryInfo dirInfo = new DirectoryInfo(user.working_folder + @"\" + panel.panel_name);
-
 
             dirInfo.Delete(true);
 
             if (panel != null)
             {
                 db.Remove(panel);
+                var content = db.Content.Where(p => p.panel_id == PanelId);
+
+                foreach (Content content1 in content)
+                {
+                    db.Content.Remove(content1);
+                }
+
                 await db.SaveChangesAsync();
                 return Ok("Панель удалена");
             }
+            
             return BadRequest("Панель не найдена");
         }
 
@@ -208,12 +216,6 @@ namespace webapi.Controllers
                 return BadRequest("Группа с таким названием уже существует");
             }
 
-            User user = db2.Users.FirstOrDefault(p => p.Id == user_id);
-
-            DirectoryInfo dirInfo = new DirectoryInfo(user.working_folder + @"\" + "Group_" + GroupName);
-
-            dirInfo.Create();
-
             GroupPanel groupPanel = new GroupPanel();
 
             groupPanel.user_id = user_id;
@@ -222,6 +224,12 @@ namespace webapi.Controllers
 
             await db.AddAsync(groupPanel);
             await db.SaveChangesAsync();
+
+            Models.User user = db2.Users.FirstOrDefault(p => p.Id == user_id);
+
+            DirectoryInfo dirInfo = new DirectoryInfo(user.working_folder + @"\" + "Group_" + groupPanel.Id);
+
+            dirInfo.Create();
 
             return Ok("Группа успешно добавлена");
         }
@@ -241,16 +249,26 @@ namespace webapi.Controllers
         [Route("deleteGroup")]
         public async Task<IActionResult> deleteGroup(int id)
         {
-            var group = await db.GroupPanels.FirstAsync(x => x.Id == id);
+            GroupPanel group = await db.GroupPanels.FirstAsync(x => x.Id == id);
+
+            var panels = db.Panels.Where(p => p.group_id == id);
 
             if (group != null)
             {
-                User user = db2.Users.FirstOrDefault(p => p.Id == group.user_id);
+                Models.User user = db2.Users.FirstOrDefault(p => p.Id == group.user_id);
 
-                DirectoryInfo dirInfo = new DirectoryInfo(user.working_folder + @"\Group_"  + group.group_name);
+                DirectoryInfo dirInfo = new DirectoryInfo(user.working_folder + @"\Group_"  + group.Id);
                 dirInfo.Delete(true);
 
                 db.GroupPanels.Remove(group);
+                
+
+                foreach (Panel panel in panels)
+                {
+                    panel.group_id = 0;
+                    db.Panels.Update(panel);
+                }
+
                 await db.SaveChangesAsync();
             }
             else
@@ -273,10 +291,7 @@ namespace webapi.Controllers
             }
             else
             {
-                User user = db2.Users.FirstOrDefault(p => p.Id == group.user_id);
-
-                DirectoryInfo dirInfo = new DirectoryInfo(user.working_folder + @"\Group_" + group.group_name);
-                dirInfo.MoveTo(user.working_folder + @"\Group_" + name);
+                Models.User user = db2.Users.FirstOrDefault(p => p.Id == group.user_id);
 
                 group.group_name = name;
                 group.comment = comment;
