@@ -14,6 +14,10 @@ using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Http.Features;
+using Quartz.Spi;
+using webapi.Jobs;
+using Quartz;
+using Quartz.Impl;
 
 namespace webapi
 {
@@ -79,6 +83,18 @@ namespace webapi
                         };
                     });
             services.AddControllersWithViews();
+
+            // Add Quartz services
+            services.AddSingleton<IJobFactory, SingletonJobFactory>();
+            services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
+
+            // Add our job
+            services.AddSingleton<DeleteGroupFileJob>();
+            services.AddSingleton(new JobSchedule(
+                jobType: typeof(DeleteGroupFileJob),
+                cronExpression: "0 10 * * * ?")); // каждые 10 минут
+
+            services.AddHostedService<QuartzHostedService>();
         }
 
         public void Configure(IApplicationBuilder app)
