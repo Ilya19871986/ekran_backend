@@ -75,29 +75,38 @@ namespace webapi.Controllers
         [Authorize]
         [HttpGet]
         [Route("newpass")]
-        public async Task<IActionResult> NewPassword(int? id, string newpassword)
+        public async Task<IActionResult> NewPassword(int? id, string newpassword, string oldpassword)
         {
             try
             {
                 Models.User user = await db.Users.FirstOrDefaultAsync(x => x.Id == id);
 
-                IFileZillaApi fileZillaApi = new FileZillaApi(IPAddress.Parse("127.0.0.1"), 14147);
+                oldpassword = oldpassword.Trim();
 
-                fileZillaApi.Connect("kiselev1987tarja");
+                if (user.password.Equals(oldpassword))
+                {
+                    IFileZillaApi fileZillaApi = new FileZillaApi(IPAddress.Parse("127.0.0.1"), 14147);
 
-                var accountSettings = fileZillaApi.GetAccountSettings();
+                    fileZillaApi.Connect("kiselev1987tarja");
 
-                var existingUser = accountSettings.Users.FirstOrDefault(x => x.UserName == user.user_name);
+                    var accountSettings = fileZillaApi.GetAccountSettings();
 
-                existingUser.AssignPassword(newpassword, fileZillaApi.ProtocolVersion);
+                    var existingUser = accountSettings.Users.FirstOrDefault(x => x.UserName == user.user_name);
 
-                fileZillaApi.SetAccountSettings(accountSettings);
-                fileZillaApi.Dispose();
-                user.password = newpassword;
+                    existingUser.AssignPassword(newpassword, fileZillaApi.ProtocolVersion);
 
-                db.Update(user);
-                await db.SaveChangesAsync();
-                return Ok("password change");
+                    fileZillaApi.SetAccountSettings(accountSettings);
+                    fileZillaApi.Dispose();
+                    user.password = newpassword.Trim();
+
+                    db.Update(user);
+                    await db.SaveChangesAsync();
+                    return Ok("password change");
+                }
+                else
+                {
+                    return BadRequest("Неверный пароль");
+                }
             }
             catch (Exception ex)
             {
@@ -250,6 +259,37 @@ namespace webapi.Controllers
                 return Json(user);
             }
             else return BadRequest("not found");
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("ChangeMyData")]
+        public async Task<IActionResult> ChangeMyData(int UserId,  string Name, string Surname, string Phone, 
+                    string Email, string Town, string org)
+        {
+            Models.User user = await db.Users.FirstOrDefaultAsync(p => p.Id == UserId);
+
+            user.surname = Surname;
+            user.name = Name;
+            user.phone = Phone;
+            user.email = Email;
+            user.town = Town;
+            user.organization = org;
+
+            db.Users.Update(user);
+            await db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetMyData")]
+        public async Task<IActionResult> GetMyData(int UserId)
+        {
+            Models.User user = await db.Users.FirstOrDefaultAsync(p => p.Id == UserId);
+
+            return Json(user);
         }
     }
 }

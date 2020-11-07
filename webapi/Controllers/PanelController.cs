@@ -56,7 +56,7 @@ namespace webapi.Controllers
         [Authorize]
         [Route("createPanel")]
         [HttpGet]
-        public async Task<IActionResult> CreatePanel(string panelName, string username)
+        public async Task<IActionResult> CreatePanel(string panelName, string username, string version = "3.0.0")
         {
             Panel checkPanelName = await db.Panels.FirstOrDefaultAsync(p => p.panel_name == panelName);
             if (checkPanelName != null) return BadRequest();
@@ -67,7 +67,7 @@ namespace webapi.Controllers
                 Panel panel = new Panel();
                 panel.panel_name = panelName.Replace(" ", "_");
                 panel.user_id = user.Id;
-                panel.player_version = "3.0.0";
+                panel.player_version = version;
                 panel.time_vip = 5;
                 db.Add(panel);
 
@@ -139,9 +139,23 @@ namespace webapi.Controllers
 
                 Panel panel = await db.Panels.FirstOrDefaultAsync(p => p.id == content.panel_id);
                 Models.User user = await db2.Users.FirstOrDefaultAsync(p => p.Id == panel.user_id);
-                var path = user.working_folder + @"\" + panel.panel_name + @"\" + ContentName(content.type_content) + @"\" + content.file_name;
+                string path = ""; 
 
-                if (content.group_id == 0)  System.IO.File.Delete(path);
+                if (content.group_id == 0) 
+                {
+                    path = user.working_folder + @"\" + panel.panel_name + @"\" + ContentName(content.type_content) + @"\" + content.file_name;
+                }
+                else
+                {
+                    // Значит файл загружен в группу. Будем проверять все ли панели загрузили файл и если да - то удаляем с сервера
+                    int result = db.Content.Count(p => p.group_id == content.group_id && p.file_name == content.file_name && p.sync == 0);
+                    if (result == 0)
+                    {
+                        // все панели группы загрузили файл 
+                        path = user.working_folder + @"\Group_" + content.group_id + @"\" + content.file_name;
+                    }
+                }
+                System.IO.File.Delete(path);
 
                 return Ok();
             }
@@ -338,6 +352,26 @@ namespace webapi.Controllers
                 db.Panels.Update(panel);
                 await db.SaveChangesAsync();
                 return Ok("Группа установлена");
+            }
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("changeOrienatation")]
+        public async Task<IActionResult> changeOrienatation(int panel_id, int orientation)
+        {
+            Panel panel = await db.Panels.FirstAsync(p => p.id == panel_id);
+            
+            if (panel == null)
+            {
+                return BadRequest("Панель не найдена");
+            }
+            else
+            {
+                panel.orientation = orientation;
+                db.Panels.Update(panel);
+                await db.SaveChangesAsync();
+                return Ok("Ориентация установлена");
             }
         }
     }

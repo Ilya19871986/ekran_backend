@@ -2,10 +2,14 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using webapi.Models;
 
@@ -175,6 +179,10 @@ namespace webapi.Controllers
                     GroupPanel group = await db.GroupPanels.FirstOrDefaultAsync(p => p.Id == group_id);
                     var panels = db.Panels.Where(p => p.group_id == group_id);
 
+                    int checkUnique = await db.Content.CountAsync(p => p.group_id == group_id && p.file_name == FileName);
+
+                    if (checkUnique > 0) return BadRequest("Файл с таким именем уже загружен в эту группу");
+
                     if (FileName.Contains("mp4") || (FileName.Contains("jpeg")) || (FileName.Contains("jpg")) || (FileName.Contains("png")))
                     {
                         using (var fileStream = new FileStream(path + @"\Group_" + group.Id + @"\" + FileName, FileMode.Create))
@@ -244,9 +252,17 @@ namespace webapi.Controllers
 
             foreach (Content content1 in content)
             {
-                content1.deleted = 1;
-                content1.sync = 2;
-                db.Content.Update(content1);
+                if (content1.sync == 1)
+                {
+                    content1.deleted = 1;
+                    content1.sync = 2;
+                    db.Content.Update(content1);
+                }
+                else
+                {
+                    db.Remove(content1);
+                }
+                
             }
 
             await db.SaveChangesAsync();
@@ -271,6 +287,23 @@ namespace webapi.Controllers
             await db.SaveChangesAsync();
 
             return Json(content);
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetStatusFileInGroup")]
+        public JsonResult GetStatusFileInGroup(int GroupId, string FileName)
+        {
+            List<Content> content = db.Content.Where(p => p.group_id == GroupId && p.file_name == FileName).ToList();
+
+            List<StatusFileInPanel> statusFileInPanel = new List<StatusFileInPanel>();
+
+            foreach (Content content1 in content)
+            {
+                statusFileInPanel.Add(new StatusFileInPanel(db.Panels.FirstOrDefault(p => p.id == content1.panel_id).panel_name , content1.sync));
+            }
+            
+            return Json(statusFileInPanel);
         }
     }
 }
